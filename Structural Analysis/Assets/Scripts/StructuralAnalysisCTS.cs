@@ -63,7 +63,7 @@ public class StructuralAnalysisCTS
         }
     }
 
-    private double[,] ConvertToUgaBuga(double[,] arr)
+    private double[,] ToConnectionMatrix(double[,] arr)
     {
         if (arr.GetLength(0) != arr.GetLength(1))
             throw new Exception("массив должен иметь одинаковые размеры по двум осям");
@@ -98,7 +98,7 @@ public class StructuralAnalysisCTS
             cut = true;
             for (int idColomn = 0; idColomn < arr.GetLength(1); idColomn++)
             {
-                if (arr[idRow, idColomn] == 1 && idRow != idColomn)
+                if (arr[idRow, idColomn] != 0 && idRow != idColomn)
                 {
                     cut = false;
                     break;
@@ -388,11 +388,13 @@ public class StructuralAnalysisCTS
             connectionsName[i] = connections[i, 0] + "_" + connections[i, 1];
         }
 
-        StreamWriter writer = new("excel.xls");
-        writer.WriteLine(matrix.CreateTable(contoursName, connectionsName).ShowArray());
-        writer.Close();
-        double[,] openAdjacencyMatrix = new double[adjacencyMatrix.GetLength(0), adjacencyMatrix.GetLength(1)];
-        SAOfOpenedTHS(openAdjacencyMatrix);
+        using (StreamWriter writer = new("excel.xls"))
+        {
+            writer.WriteLine(matrix.CreateTable(contoursName, connectionsName).ShowArray());
+        }
+
+        //double[,] openAdjacencyMatrix = new double[adjacencyMatrix.GetLength(0), adjacencyMatrix.GetLength(1)];
+        SAOfOpenedTHS(adjacencyMatrix);
     }
     /// <summary>
     /// Структурный анализ химикотехнологических систем
@@ -408,14 +410,14 @@ public class StructuralAnalysisCTS
         }
 
         Debug.Log(adjacencyMatrix.ShowArray());
-        double[,] arr = ConvertToUgaBuga(adjacencyMatrix);
+        double[,] connectionMatrix = ToConnectionMatrix(adjacencyMatrix);
         Debug.Log("A = ");
-        Debug.Log(arr.ShowArray());
+        Debug.Log(connectionMatrix.ShowArray());
         Debug.Log("A^T = ");
-        double[,] arrT = arr.Transposition();
+        double[,] arrT = connectionMatrix.Transposition();
         Debug.Log(arrT.ShowArray());
         Debug.Log("Логически перемножая элементы матриц A и A^T = ");
-        double[,] complexArr = arr.Complex(arrT);
+        double[,] complexArr = connectionMatrix.Complex(arrT);
         if (OnlyMainDiagonal(complexArr))
         {
             Debug.Log("Так как полученная матрица имеет единицу только на главной диагонали, то означает, что это разомкнутая система");

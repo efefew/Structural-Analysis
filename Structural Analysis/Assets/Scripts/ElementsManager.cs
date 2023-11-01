@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 using UnityEngine;
@@ -8,6 +9,7 @@ public class ElementsManager : MonoBehaviour
     #region Fields
 
     private const float DISTANCE_RAY = 1000f;
+    private const float ELEMENT_OFFSET = 25f;
     private Vector3 pos, startPos, ScreenPos;
     private Element elementMove;
     private ElementÑonnection connectionMove;
@@ -72,11 +74,20 @@ public class ElementsManager : MonoBehaviour
     {
         if (!Input.GetKeyDown(key))
             return;
+        CreateElement();
+    }
+    private void CreateElement()
+    {
         elements.Add(Instantiate(elementPrefab, pos.Z(0), Quaternion.identity, transform));
         idName++;
         elements.Last().text.text = idName.ToString();
     }
-
+    private void CreateElement(Vector2 position)
+    {
+        elements.Add(Instantiate(elementPrefab, position, Quaternion.identity, transform));
+        idName++;
+        elements.Last().text.text = idName.ToString();
+    }
     private void DeleteElement(KeyCode key)
     {
         Element deleteElement = (Element)RayClick(key, layer: "Element", typeComponent: typeof(Element));
@@ -132,7 +143,21 @@ public class ElementsManager : MonoBehaviour
 
         connectionMove.OnChangePositionCursor(pos.Z(0));
     }
+    private void CreateElementÑonnection(Element from, Element to, double value)
+    {
+        if (from == to)
+            return;
 
+        ElementÑonnection connection = Instantiate(connectionPrefab, pos, Quaternion.identity, transform);
+
+        from.connections.Add(connection);
+        connection.FromElementConnect(from);
+
+        to.connections.Add(connection);
+        connection.ToElementConnect(to);
+
+        connection.value = value;
+    }
     private void MoveElement(KeyCode key)
     {
         Element element = (Element)RayClick(key, layer: "Element", typeComponent: typeof(Element));
@@ -148,14 +173,48 @@ public class ElementsManager : MonoBehaviour
             elementMove = null;
     }
 
-    [ContextMenu("GetOrderCalculation")]
     public void GetOrderCalculation() => Debug.Log(new StructuralAnalysisCTS().StructuralAnalysisChemicalTechnologicalSystems(CreateAdjacencyMatrix()));
+    public void CreateScheme()
+    {
+        using StreamReader reader = new("input.txt");
+        int count = reader.ReadLine().ToInt();
+        int y = 0;
+        double[,] matrix = new double[count, count];
+        while (!reader.EndOfStream)
+        {
+            string[] line = reader.ReadLine().Split('\t');
+            for (int x = 0; x < count; x++)
+                matrix[x, y] = line[x].ToFloat();
+
+            y++;
+        }
+
+        CreateElements(count);
+        CreateElementÑonnections(matrix);
+
+    }
+    private void CreateElements(int count)
+    {
+        for (int i = 0; i < count; i++)
+            CreateElement(new Vector2(i * ELEMENT_OFFSET, 0));
+    }
+    private void CreateElementÑonnections(double[,] matrix)
+    {
+        for (int x = 0; x < matrix.GetLength(0); x++)
+        {
+            for (int y = 0; y < matrix.GetLength(1); y++)
+            {
+                if (matrix[x, y] != 0)
+                    CreateElementÑonnection(elements[y], elements[x], matrix[x, y]);
+            }
+        }
+    }
     private double[,] CreateAdjacencyMatrix()
     {
         double[,] matrix = new double[elements.Count, elements.Count];
         for (int x = 0; x < matrix.GetLength(0); x++)
         {
-            for (int y = 0; y < matrix.GetLength(0); y++)
+            for (int y = 0; y < matrix.GetLength(1); y++)
                 matrix[x, y] = 0;
         }
 
@@ -167,7 +226,7 @@ public class ElementsManager : MonoBehaviour
                 if (elements[idElement].connections[idConnection].fromElement == elements[idElement])
                 {
                     id = elements.IndexOf(elements[idElement].connections[idConnection].toElement);
-                    matrix[idElement, id] = 1.0;
+                    matrix[idElement, id] = elements[idElement].connections[idConnection].value;
                 }
             }
         }

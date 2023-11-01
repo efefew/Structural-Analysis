@@ -73,6 +73,7 @@ MonoBehaviour:
   toElement: {fileID: 0}
   offsetStart: -12
   offsetEnd: -22
+  value: 1
 --- !u!120 &6987126281471470656
 LineRenderer:
   serializedVersion: 2

@@ -8,6 +8,7 @@ public class ElementСonnection : AutoBezierCurvesVersions
     private const float SCALE = 0.5f;
     private const int RIGHT_ANGLE = 90;
     public float offsetStart, offsetEnd;
+    public double value = 1;
     public override void OnChangePositionElement()
     {
         base.OnChangePositionElement();

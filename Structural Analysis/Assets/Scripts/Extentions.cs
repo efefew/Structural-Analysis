@@ -811,6 +811,7 @@ public static class ConvertExtensions
         return arr;
     }
     public static float ToFloat(this string s) => Convert.ToSingle(s.Replace('.', ','));
+
     public static float[] ToFloat(this string[] s)
     {
         float[] sFloat = new float[s.Length];
