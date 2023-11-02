@@ -498,6 +498,26 @@ public static class ArrayExtensions
         return C;
     }
     /// <summary>
+    /// Построение матрицы комплексов C
+    /// </summary>
+    /// <param name="A">матрица A</param>
+    /// <param name="B">матрица B</param>
+    /// <returns>матрица комплексов С = логически перемножая элементы матриц A и B</returns>
+    /// <exception cref="Exception">если матрицы A и B не одинаковых размеров</exception>
+    public static int[,] Complex(this int[,] A, int[,] B)
+    {
+        if (A.GetLength(0) != B.GetLength(0) || A.GetLength(1) != B.GetLength(1))
+            throw new Exception("матрицы A и B не одинаковых размеров");
+        int[,] C = new int[A.GetLength(0), A.GetLength(1)];
+        for (int x = 0; x < C.GetLength(0); x++)
+        {
+            for (int y = 0; y < C.GetLength(1); y++)
+                C[x, y] = A[x, y] * B[x, y];
+        }
+
+        return C;
+    }
+    /// <summary>
     /// Создание массива с нумированием строк и столбцов
     /// </summary>
     /// <typeparam name="T">тип элементов массива</typeparam>

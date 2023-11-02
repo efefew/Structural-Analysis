@@ -12,13 +12,13 @@ public class ElementsManager : MonoBehaviour
     private const float ELEMENT_OFFSET = 25f;
     private Vector3 pos, startPos, ScreenPos;
     private Element elementMove;
-    private Element—onnection connectionMove;
+    private ElementConnection connectionMove;
 
     [SerializeField]
     private Element elementPrefab;
 
     [SerializeField]
-    private Element—onnection connectionPrefab;
+    private ElementConnection connectionPrefab;
 
     private List<Element> elements = new();
     private int idName = 0;
@@ -66,7 +66,7 @@ public class ElementsManager : MonoBehaviour
         else
         {
             MoveElement(KeyCode.Mouse0);
-            CreateElement—onnection(KeyCode.Mouse1);
+            CreateElementConnection(KeyCode.Mouse1);
         }
     }
 
@@ -99,7 +99,7 @@ public class ElementsManager : MonoBehaviour
         deleteElement.Delete();
     }
 
-    private void CreateElement—onnection(KeyCode key)
+    private void CreateElementConnection(KeyCode key)
     {
         Element element = (Element)RayClick(key, layer: "Element", typeComponent: typeof(Element));
 
@@ -107,10 +107,10 @@ public class ElementsManager : MonoBehaviour
         {
             if (!connectionMove)
             {
-                Element—onnection Òonnection = Instantiate(connectionPrefab, pos, Quaternion.identity, transform);
-                element.connections.Add(Òonnection);
-                Òonnection.FromElementConnect(element);
-                connectionMove = Òonnection;
+                ElementConnection connection = Instantiate(connectionPrefab, pos, Quaternion.identity, transform);
+                element.connections.Add(connection);
+                connection.FromElementConnect(element);
+                connectionMove = connection;
             }
             else
             {
@@ -143,12 +143,12 @@ public class ElementsManager : MonoBehaviour
 
         connectionMove.OnChangePositionCursor(pos.Z(0));
     }
-    private void CreateElement—onnection(Element from, Element to, double value)
+    private void CreateElementConnection(Element from, Element to, int value)
     {
         if (from == to)
             return;
 
-        Element—onnection connection = Instantiate(connectionPrefab, pos, Quaternion.identity, transform);
+        ElementConnection connection = Instantiate(connectionPrefab, pos, Quaternion.identity, transform);
 
         from.connections.Add(connection);
         connection.FromElementConnect(from);
@@ -179,18 +179,18 @@ public class ElementsManager : MonoBehaviour
         using StreamReader reader = new("input.txt");
         int count = reader.ReadLine().ToInt();
         int y = 0;
-        double[,] matrix = new double[count, count];
+        int[,] matrix = new int[count, count];
         while (!reader.EndOfStream)
         {
             string[] line = reader.ReadLine().Split('\t');
             for (int x = 0; x < count; x++)
-                matrix[x, y] = line[x].ToFloat();
+                matrix[x, y] = line[x].ToInt();
 
             y++;
         }
 
         CreateElements(count);
-        CreateElement—onnections(matrix);
+        CreateElementConnections(matrix);
 
     }
     private void CreateElements(int count)
@@ -198,20 +198,20 @@ public class ElementsManager : MonoBehaviour
         for (int i = 0; i < count; i++)
             CreateElement(new Vector2(i * ELEMENT_OFFSET, 0));
     }
-    private void CreateElement—onnections(double[,] matrix)
+    private void CreateElementConnections(int[,] matrix)
     {
         for (int x = 0; x < matrix.GetLength(0); x++)
         {
             for (int y = 0; y < matrix.GetLength(1); y++)
             {
                 if (matrix[x, y] != 0)
-                    CreateElement—onnection(elements[y], elements[x], matrix[x, y]);
+                    CreateElementConnection(elements[y], elements[x], matrix[x, y]);
             }
         }
     }
-    private double[,] CreateAdjacencyMatrix()
+    private int[,] CreateAdjacencyMatrix()
     {
-        double[,] matrix = new double[elements.Count, elements.Count];
+        int[,] matrix = new int[elements.Count, elements.Count];
         for (int x = 0; x < matrix.GetLength(0); x++)
         {
             for (int y = 0; y < matrix.GetLength(1); y++)

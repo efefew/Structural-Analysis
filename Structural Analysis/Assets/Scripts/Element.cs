@@ -9,7 +9,7 @@ public class Element : MonoBehaviour
     public Action OnChangePosition;
     public int id;
     public Transform tr { get; private set; }
-    public List<ElementСonnection> connections = new();
+    public List<ElementConnection> connections = new();
     public Text text;
     private void Awake() => tr = transform;
     public void ChangePosition(Vector3 position)

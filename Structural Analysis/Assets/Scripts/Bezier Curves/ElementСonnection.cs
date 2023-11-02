@@ -2,13 +2,14 @@
 
 using UnityEngine;
 
-public class ElementСonnection : AutoBezierCurvesVersions
+public class ElementConnection : AutoBezierCurvesVersions
 {
-    public Action OnChangePositionСonnection;
+    public Action OnChangePositionConnection;
     private const float SCALE = 0.5f;
     private const int RIGHT_ANGLE = 90;
     public float offsetStart, offsetEnd;
-    public double value = 1;
+    [Min(1)]
+    public int value = 1;
     public override void OnChangePositionElement()
     {
         base.OnChangePositionElement();
@@ -36,7 +37,7 @@ public class ElementСonnection : AutoBezierCurvesVersions
         }
 
         curves.ChangeLine(points);
-        OnChangePositionСonnection?.Invoke();
+        OnChangePositionConnection?.Invoke();
     }
     public void OnChangePositionCursor(Vector3 pointCursor)
     {
@@ -62,7 +63,7 @@ public class ElementСonnection : AutoBezierCurvesVersions
         }
 
         curves.ChangeLine(points);
-        OnChangePositionСonnection?.Invoke();
+        OnChangePositionConnection?.Invoke();
     }
     public void Delete()
     {
