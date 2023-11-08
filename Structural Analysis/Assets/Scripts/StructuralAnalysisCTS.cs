@@ -501,11 +501,6 @@ public class StructuralAnalysisCTS
 
         return openAdjacencyMatrix;
     }
-    /// <summary>
-    /// ����������� ������ ��������������������� ������
-    /// </summary>
-    /// <param name="adjacencyMatrix">������� ���������</param>
-    /// <returns></returns>
     public bool StructuralAnalysisChemicalTechnologicalSystems(int[,] adjacencyMatrix)
     {
         if (adjacencyMatrix == null ||
@@ -549,10 +544,6 @@ public class StructuralAnalysisCTS
         MatrixOfContoursOfTheComplex(contours, connections, adjacencyMatrix);
         return true;
     }
-    /// <summary>
-    /// ����������� ������ ����������� ��������������������� ������
-    /// </summary>
-    /// <param name="adjacencyMatrix">������� ���������</param>
     private void SAOfOpenedTHS(int[,] adjacencyMatrix)
     {
         if (adjacencyMatrix == null)

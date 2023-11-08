@@ -157,6 +157,7 @@ public class ElementsManager : MonoBehaviour
         connection.ToElementConnect(to);
 
         connection.value = value;
+        connection.OnChangePositionElement();
     }
     private void MoveElement(KeyCode key)
     {
@@ -195,8 +196,16 @@ public class ElementsManager : MonoBehaviour
     }
     private void CreateElements(int count)
     {
-        for (int i = 0; i < count; i++)
-            CreateElement(new Vector2(i * ELEMENT_OFFSET, 0));
+        float radius = 10f;
+        Transform point = new GameObject().transform;
+        for (int id = 0; id < count; id++)
+        {
+            point.eulerAngles = Vector3.zero.Z(id * 360f / count);
+            point.localPosition = Vector3.zero + (point.right * radius * count);
+            CreateElement(point.position);
+        }
+
+        Destroy(point.gameObject);
     }
     private void CreateElementConnections(int[,] matrix)
     {
