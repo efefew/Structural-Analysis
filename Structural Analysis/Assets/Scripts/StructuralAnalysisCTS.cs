@@ -3,7 +3,25 @@ using System.Collections.Generic;
 using System.IO;
 
 using UnityEngine;
+public struct Connection
+{
+    public string nameFrom, nameTo, name;
+    public int idFrom, idTo;
 
+    public Connection(string nameFrom, string nameTo, int idFrom, int idTo)
+    {
+        this.nameFrom = nameFrom;
+        this.nameTo = nameTo;
+        this.idFrom = idFrom;
+        this.idTo = idTo;
+        name = nameFrom + "_" + nameTo;
+    }
+}
+public class Contour
+{
+    public List<int> idElements = new();
+    public List<string> nameElements = new();
+}
 public class StructuralAnalysisCTS
 {
     private (int, int[], int[,]) FindEmptyColumnAndDelete(int[,] arr, int[] idArr)
@@ -186,57 +204,58 @@ public class StructuralAnalysisCTS
         return arr2D;
     }
 
-    private (string[,], string[][]) CreateConnectionsAndContours(double[,] cutAdjacencyMatrix, string[] names)
+    private (Connection[], Contour[]) CreateConnectionsAndContours(double[,] cutAdjacencyMatrix, string[] names)
     {
-        List<string[]> connections = new();
-        List<List<string>> contours = new();
+        List<Connection> connections = new();
+        List<Contour> contours = new();
         for (int x = 0; x < cutAdjacencyMatrix.GetLength(0); x++)
         {
             for (int y = 0; y < cutAdjacencyMatrix.GetLength(1); y++)
             {
-                if (cutAdjacencyMatrix[x, y] == 1)
-                    connections.Add(new string[2] { names[x], names[y] });
+                if (cutAdjacencyMatrix[x, y] != 0)
+                    connections.Add(new Connection(names[x], names[y], x, y));
             }
         }
 
-        Debug.Log("����������:");
+        Debug.Log("Соединения:");
         for (int i = 0; i < connections.Count; i++)
-            Debug.Log(connections[i][0] + "-" + connections[i][1]);
+            Debug.Log(connections[i].name);
 
-        List<string> tempContour = new()
+        List<int> tempContour = new()
             {
-                connections[0][0]
+                connections[0].idFrom
             };
         bool forward = true;
         Debug.Log("-------------------------------------");
         do
         {
-            string nextElement;
+            int nextElementID;
             if (forward)
             {
-                nextElement = FirstFindElementConnexion(tempContour[^1], connections);
+                nextElementID = FirstFindElementConnection(tempContour[^1], connections);
             }
             else
             {
-                nextElement = NextFindElementConnexion(tempContour[^1], tempContour[^2], connections);
+                nextElementID = NextFindElementConnection(tempContour[^1], tempContour[^2], connections);
                 tempContour.RemoveAt(tempContour.Count - 1);
             }
 
-            if (nextElement != null)
+            if (nextElementID != -1)
             {
-                if (tempContour.Contains(nextElement))
+                if (tempContour.Contains(nextElementID))
                 {
                     forward = false;
-                    tempContour.Add(nextElement);
-                    contours.Add(new List<string>());
-                    contours[^1].AddRange(tempContour);
-                    contours[^1].RemoveRange(0, tempContour.IndexOf(nextElement));
-
+                    tempContour.Add(nextElementID);
+                    contours.Add(new Contour());
+                    contours[^1].idElements.AddRange(tempContour);
+                    contours[^1].idElements.RemoveRange(0, tempContour.IndexOf(nextElementID));
+                    for (int id = 0; id < contours[^1].idElements.Count; id++)
+                        contours[^1].nameElements.Add(names[contours[^1].idElements[id]]);
                 }
                 else
                 {
                     forward = true;
-                    tempContour.Add(nextElement);
+                    tempContour.Add(nextElementID);
                 }
             }
             else
@@ -245,28 +264,28 @@ public class StructuralAnalysisCTS
                     break;
                 forward = false;
             }
-            //Debug.Log(tempContour.ToArray().ShowArray());
+            //Debug.Log(tempContourValues.ToArray().ShowArray());
         }
         while (tempContour.Count > 0);//������� ���������� ��� ��������
 
         DeleteRepeatContours(contours);
         for (int i = 0; i < contours.Count; i++)
-            Debug.Log("<color=#22EE22>" + contours[i].ToArray().ShowArray("-") + "</color>");
+            Debug.Log("<color=#22EE22>" + contours[i].nameElements.ShowList("-") + "</color>");
 
-        return (To2DArray(connections), To2DArray(contours));
+        return (connections.ToArray(), contours.ToArray());
     }
 
-    private void DeleteRepeatContours(List<List<string>> contours)
+    private void DeleteRepeatContours(List<Contour> contours)
     {
         for (int i = 0; i < contours.Count; i++)
         {
             for (int j = 0; j < contours.Count; j++)
             {
-                if (i != j && contours[i].Count == contours[j].Count)
+                if (i != j && contours[i].idElements.Count == contours[j].idElements.Count)
                 {
                     if (RepeatContour(contours[i], contours[j]) || RepeatDisplacedContour(contours[i], contours[j]))
                     {
-                        Debug.Log("<color=#22EED4>" + contours[i].ToArray().ShowArray("-") + "</color>");
+                        Debug.Log("<color=#22EED4>" + contours[i].nameElements.ShowList("-") + "</color>");
                         _ = contours.Remove(contours[i]);
                         break;
                     }
@@ -275,26 +294,26 @@ public class StructuralAnalysisCTS
         }
     }
 
-    private bool RepeatDisplacedContour(List<string> contour1, List<string> contour2)
+    private bool RepeatDisplacedContour(Contour contour1, Contour contour2)
     {
-        List<string> c1 = new();
-        c1.AddRange(contour1);
-        c1.RemoveAt(0);
-        List<string> c2 = new();
-        c2.AddRange(contour2);
-        c2.RemoveAt(0);
+        List<int> idElements1 = new();
+        idElements1.AddRange(contour1.idElements);
+        idElements1.RemoveAt(0);
+        List<int> idElements2 = new();
+        idElements2.AddRange(contour2.idElements);
+        idElements2.RemoveAt(0);
         int displacedId;
-        for (int i = 0; i < c1.Count; i++)
+        for (int i = 0; i < idElements1.Count; i++)
         {
             displacedId = i;
-            for (int j = 0; j < c2.Count; j++)
+            for (int j = 0; j < idElements2.Count; j++)
             {
                 displacedId++;
-                if (displacedId == c2.Count)
+                if (displacedId == idElements2.Count)
                     displacedId = 0;
-                if (c1[displacedId] != c2[j])
+                if (idElements1[displacedId] != idElements2[j])
                     break;
-                if (j + 1 == c2.Count)
+                if (j + 1 == idElements2.Count)
                     return true;
             }
         }
@@ -302,93 +321,87 @@ public class StructuralAnalysisCTS
         return false;
     }
 
-    private bool RepeatContour(List<string> contour1, List<string> contour2)
+    private bool RepeatContour(Contour contour1, Contour contour2)
     {
-        for (int i = 0; i < contour1.Count; i++)
+        for (int i = 0; i < contour1.idElements.Count; i++)
         {
-            if (contour1[i] != contour2[i])
+            if (contour1.idElements[i] != contour2.idElements[i])
                 return false;
         }
 
         return true;
     }
-    private string FirstFindElementConnexion(string fromElement, List<string[]> connections)
+    private int FirstFindElementConnection(int fromElementID, List<Connection> connections)
     {
         for (int i = 0; i < connections.Count; i++)
         {
-            if (connections[i][0] == fromElement)
-                return connections[i][1];
+            if (connections[i].idFrom == fromElementID)
+                return connections[i].idTo;
         }
 
-        return null;
+        return -1;
     }
-    private string NextFindElementConnexion(string oldToElement, string fromElement, List<string[]> connections)
+    private int NextFindElementConnection(int oldToElementID, int fromElementID, List<Connection> connections)
     {
         bool oldToElementFinded = false;
         for (int i = 0; i < connections.Count; i++)
         {
-            if (connections[i][0] == fromElement)
+            if (connections[i].idFrom == fromElementID)
             {
-                if (connections[i][1] == oldToElement)
+                if (connections[i].idTo == oldToElementID)
                 {
                     oldToElementFinded = true;
                     continue;
                 }
 
                 if (oldToElementFinded)
-                    return connections[i][1];
+                    return connections[i].idTo;
             }
         }
 
-        return null;
+        return -1;
     }
 
-    private int ArcInContour(string fromElement, string toElement, string[] contour)
+    private int ArcInContour(string fromElement, string toElement, Contour contour)
     {
-        for (int i = 0; i < contour.Length - 1; i++)
+        for (int i = 0; i < contour.nameElements.Count - 1; i++)
         {
-            if (contour[i] == fromElement && contour[i + 1] == toElement)
+            if (contour.nameElements[i] == fromElement && contour.nameElements[i + 1] == toElement)
                 return 1;
         }
 
         return 0;
     }
 
-    private void MatrixOfContoursOfTheComplex(string[][] contours, string[,] connections, int[,] adjacencyMatrix)
+    private void MatrixOfContoursOfTheComplex(Contour[] contours, Connection[] connections, int[,] adjacencyMatrix)
     {
-        int[,] showMatrix = new int[contours.Length + 2, connections.GetLength(0)];
         int[,] matrixArcAndContour = new int[contours.Length, connections.GetLength(0)];
         int[] countP = new int[connections.GetLength(0)];
         int[] countArc = new int[connections.GetLength(0)];
         for (int i = 0; i < matrixArcAndContour.GetLength(0); i++)
         {
             for (int j = 0; j < matrixArcAndContour.GetLength(1); j++)
-            {
-                matrixArcAndContour[i, j] = ArcInContour(connections[j, 0], connections[j, 1], contours[i]) * adjacencyMatrix[connections[j, 0].ToInt() - 1, connections[j, 1].ToInt() - 1];
-                showMatrix[i, j] = matrixArcAndContour[i, j];
-            }
+                matrixArcAndContour[i, j] = ArcInContour(connections[j].nameFrom, connections[j].nameTo, contours[i]) * adjacencyMatrix[connections[j].idFrom, connections[j].idTo];
         }
 
-        for (int i = 0; i < showMatrix.GetLength(1); i++)
+        for (int i = 0; i < matrixArcAndContour.GetLength(0); i++)
         {
             countP[i] = 0;
             countArc[i] = 0;
-            for (int j = 0; j < showMatrix.GetLength(0) - 2; j++)
+            for (int j = 0; j < matrixArcAndContour.GetLength(1); j++)
             {
-                countP[i] += showMatrix[j,i];//matrixArcAndContour[j, i];//суммарная параметричность
-                countArc[i]++;//количество дуг
+                countP[i] += matrixArcAndContour[j, i];//matrixArcAndContour[j, i];//суммарная параметричность
+                if (matrixArcAndContour[j, i] != 0)
+                    countArc[i]++;//количество дуг
             }
-
-            showMatrix[showMatrix.GetLength(0) - 1, i] = countP[i];
-            showMatrix[showMatrix.GetLength(0) - 2, i] = countArc[i];
         }
 
         string[] contoursName = new string[contours.Length + 2];
         for (int i = 0; i < contoursName.Length - 2; i++)
         {
-            contoursName[i] = contours[i][0];
-            for (int j = 1; j < contours[i].Length; j++)
-                contoursName[i] += "_" + contours[i][j];
+            contoursName[i] = contours[i].nameElements[0];
+            for (int j = 1; j < contours[i].nameElements.Count; j++)
+                contoursName[i] += "_" + contours[i].nameElements[j];
         }
 
         contoursName[^2] = "f";
@@ -397,18 +410,56 @@ public class StructuralAnalysisCTS
         string[] connectionsName = new string[connections.GetLength(0)];
         for (int i = 0; i < connectionsName.Length; i++)
         {
-            connectionsName[i] = connections[i, 0] + "_" + connections[i, 1];
+            connectionsName[i] = connections[i].name;
         }
 
         using (StreamWriter writer = new("excel.xls"))
         {
-            writer.WriteLine(showMatrix.CreateTable(contoursName, connectionsName).ShowArray());
+            writer.WriteLine(ShowMatrixOfContoursOfTheComplex(contours, connections, matrixArcAndContour, countP, countArc));
         }
 
-        int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countP, countArc, connections);
+        int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countP, countArc, connections, contours);
         SAOfOpenedTHS(openAdjacencyMatrix);
     }
-    public int[,] SplitAdjacencyMatrix(int[,] adjacencyMatrix, int[,] matrixArcAndContour, int[] countP, int[] countArc, string[,] connections)
+    public string ShowMatrixOfContoursOfTheComplex(Contour[] contours, Connection[] connections, int[,] matrixArcAndContour, int[] countP, int[] countArc)
+    {
+        int[,] showMatrix = new int[matrixArcAndContour.GetLength(0) + 2, matrixArcAndContour.GetLength(1)];
+
+        //записываем матрицу  присутствия дуг в контурах
+        for (int i = 0; i < matrixArcAndContour.GetLength(0); i++)
+        {
+            for (int j = 0; j < matrixArcAndContour.GetLength(1); j++)
+                showMatrix[i, j] = matrixArcAndContour[i, j];
+        }
+
+        //записываем параметричность и количество дуг
+        for (int i = 0; i < showMatrix.GetLength(1); i++)
+        {
+            showMatrix[showMatrix.GetLength(0) - 1, i] = countP[i];
+            showMatrix[showMatrix.GetLength(0) - 2, i] = countArc[i];
+        }
+
+        //записываем имена контуров
+        string[] contoursName = new string[contours.Length + 2];
+        for (int i = 0; i < contoursName.Length - 2; i++)
+        {
+            contoursName[i] = contours[i].nameElements[0];
+            for (int j = 1; j < contours[i].nameElements.Count; j++)
+                contoursName[i] += "_" + contours[i].nameElements[j];
+        }
+
+        //записываю наименование количества дуг и параметричности
+        contoursName[^2] = "f";
+        contoursName[^1] = "p";
+
+        //записываем наименование дуг
+        string[] connectionsName = new string[connections.GetLength(0)];
+        for (int i = 0; i < connectionsName.Length; i++)
+            connectionsName[i] = connections[i].name;
+
+        return showMatrix.CreateTable(contoursName, connectionsName).ShowArray();
+    }
+    public int[,] SplitAdjacencyMatrix(int[,] adjacencyMatrix, int[,] matrixArcAndContour, int[] countP, int[] countArc, Connection[] connections, Contour[] contours)
     {
         int[,] openAdjacencyMatrix = new int[adjacencyMatrix.GetLength(0), adjacencyMatrix.GetLength(1)];
         for (int x = 0; x < adjacencyMatrix.GetLength(0); x++)
@@ -419,22 +470,22 @@ public class StructuralAnalysisCTS
             }
         }
 
-        List<int> splitContours = new ();
-        List<int> usedArcs = new ();
+        List<int> splitContours = new();
+        List<int> usedArcs = new();
         for (int id = 0; id < matrixArcAndContour.GetLength(0); id++)
             splitContours.Add(id);
         int min, idMinArc;
 
-        while(splitContours.Count > 0)
+        while (splitContours.Count > 0)
         {
             min = int.MaxValue;
             idMinArc = 0;
             for (int idArc = 0; idArc < countArc.Length; idArc++)
             {
-                if (min > (countArc[idArc] - countP[idArc]) && !usedArcs.Contains(idArc))
+                if (countArc[idArc] != 0 && min > (countP[idArc] - countArc[idArc]) && !usedArcs.Contains(idArc))
                 {
                     idMinArc = idArc;
-                    min = countArc[idArc] - countP[idArc];
+                    min = countP[idArc] - countArc[idArc];
                 }
             }
 
@@ -444,14 +495,13 @@ public class StructuralAnalysisCTS
             {
                 if (matrixArcAndContour[idContour, idMinArc] != 0)
                 {
-                    openAdjacencyMatrix[connections[idMinArc,0].ToInt()  - 1, connections[idMinArc, 1].ToInt() - 1] = 0;
+                    Debug.Log($"<color=#AC68FA>Разрываем связь {connections[idMinArc].name}</color>");
+                    openAdjacencyMatrix[connections[idMinArc].idFrom, connections[idMinArc].idTo] = 0;
                     if (splitContours.Contains(idContour))
-                        splitContours.Remove(idContour);
+                        _ = splitContours.Remove(idContour);
                 }
             }
         }
-       
-            
 
         return openAdjacencyMatrix;
     }
@@ -494,11 +544,11 @@ public class StructuralAnalysisCTS
             for (int j = 0; j < complexes[i].Length; j++)
                 Debug.Log(complexes[i][j]);
         }
-        //Debug.Log(names.ShowArray());
+        //Debug.Log(nameElements.ShowArray());
         Debug.Log("�������� ������� ���������:");
         Debug.Log(cutAdjacencyMatrix.CreateTable(names).ShowArray());
-        string[][] contours;
-        string[,] connections;
+        Contour[] contours;
+        Connection[] connections;
         (connections, contours) = CreateConnectionsAndContours(cutAdjacencyMatrix, names);
         MatrixOfContoursOfTheComplex(contours, connections, adjacencyMatrix);
         return true;

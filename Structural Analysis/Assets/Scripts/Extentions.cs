@@ -203,6 +203,24 @@ public static class ArrayExtensions
         return str;
     }
     /// <summary>
+    /// метод визуализации списка
+    /// </summary> 
+    /// <returns>строка визуализации</returns>
+    public static string ShowList<T>(this List<T> list, string separator = "\t")
+    {
+        if (list.Count == 0)
+            return null;
+        string str = "";
+        str += list[0];
+        if (list.Count > 1)
+        {
+            for (int i = 1; i < list.Count; i++)
+                str += separator + list[i];
+        }
+
+        return str;
+    }
+    /// <summary>
     /// метод визуализации 2D массива
     /// </summary>
     /// <returns>строка визуализации</returns>
