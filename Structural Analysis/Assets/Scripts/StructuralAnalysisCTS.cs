@@ -376,52 +376,44 @@ public class StructuralAnalysisCTS
     private void MatrixOfContoursOfTheComplex(Contour[] contours, Connection[] connections, int[,] adjacencyMatrix)
     {
         int[,] matrixArcAndContour = new int[contours.Length, connections.GetLength(0)];
-        int[] countP = new int[connections.GetLength(0)];
-        int[] countArc = new int[connections.GetLength(0)];
         for (int i = 0; i < matrixArcAndContour.GetLength(0); i++)
         {
             for (int j = 0; j < matrixArcAndContour.GetLength(1); j++)
                 matrixArcAndContour[i, j] = ArcInContour(connections[j].nameFrom, connections[j].nameTo, contours[i]) * adjacencyMatrix[connections[j].idFrom, connections[j].idTo];
         }
 
-        for (int i = 0; i < matrixArcAndContour.GetLength(0); i++)
+        (int[] countParametric, int[] countArc) = CalculateCountParametricAndArc(matrixArcAndContour);
+
+        string showMatrix = ShowMatrixOfContoursOfTheComplex(contours, connections, matrixArcAndContour, countParametric, countArc);
+        Debug.Log(showMatrix);
+        using (StreamWriter writer = new("excel.xls"))
         {
-            countP[i] = 0;
+            writer.WriteLine(showMatrix);
+        }
+
+        int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countParametric, countArc, connections, contours);
+        SAOfOpenedTHS(openAdjacencyMatrix);
+    }
+    private (int[], int[]) CalculateCountParametricAndArc(int[,] matrix)
+    {
+        int[] countParametric = new int[matrix.GetLength(1)];
+        int[] countArc = new int[matrix.GetLength(1)];
+
+        for (int i = 0; i < matrix.GetLength(1); i++)
+        {
+            countParametric[i] = 0;
             countArc[i] = 0;
-            for (int j = 0; j < matrixArcAndContour.GetLength(1); j++)
+            for (int j = 0; j < matrix.GetLength(0); j++)
             {
-                countP[i] += matrixArcAndContour[j, i];//matrixArcAndContour[j, i];//суммарная параметричность
-                if (matrixArcAndContour[j, i] != 0)
+                countParametric[i] += matrix[j, i];//суммарная параметричность
+                if (matrix[j, i] != 0)
                     countArc[i]++;//количество дуг
             }
         }
 
-        string[] contoursName = new string[contours.Length + 2];
-        for (int i = 0; i < contoursName.Length - 2; i++)
-        {
-            contoursName[i] = contours[i].nameElements[0];
-            for (int j = 1; j < contours[i].nameElements.Count; j++)
-                contoursName[i] += "_" + contours[i].nameElements[j];
-        }
-
-        contoursName[^2] = "f";
-        contoursName[^1] = "p";
-
-        string[] connectionsName = new string[connections.GetLength(0)];
-        for (int i = 0; i < connectionsName.Length; i++)
-        {
-            connectionsName[i] = connections[i].name;
-        }
-
-        using (StreamWriter writer = new("excel.xls"))
-        {
-            writer.WriteLine(ShowMatrixOfContoursOfTheComplex(contours, connections, matrixArcAndContour, countP, countArc));
-        }
-
-        int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countP, countArc, connections, contours);
-        SAOfOpenedTHS(openAdjacencyMatrix);
+        return (countParametric, countArc);
     }
-    public string ShowMatrixOfContoursOfTheComplex(Contour[] contours, Connection[] connections, int[,] matrixArcAndContour, int[] countP, int[] countArc)
+    private string ShowMatrixOfContoursOfTheComplex(Contour[] contours, Connection[] connections, int[,] matrixArcAndContour, int[] countP, int[] countArc)
     {
         int[,] showMatrix = new int[matrixArcAndContour.GetLength(0) + 2, matrixArcAndContour.GetLength(1)];
 
@@ -459,7 +451,7 @@ public class StructuralAnalysisCTS
 
         return showMatrix.CreateTable(contoursName, connectionsName).ShowArray();
     }
-    public int[,] SplitAdjacencyMatrix(int[,] adjacencyMatrix, int[,] matrixArcAndContour, int[] countP, int[] countArc, Connection[] connections, Contour[] contours)
+    private int[,] SplitAdjacencyMatrix(int[,] adjacencyMatrix, int[,] matrixArcAndContour, int[] countParametric, int[] countArc, Connection[] connections, Contour[] contours)
     {
         int[,] openAdjacencyMatrix = new int[adjacencyMatrix.GetLength(0), adjacencyMatrix.GetLength(1)];
         for (int x = 0; x < adjacencyMatrix.GetLength(0); x++)
@@ -482,23 +474,27 @@ public class StructuralAnalysisCTS
             idMinArc = 0;
             for (int idArc = 0; idArc < countArc.Length; idArc++)
             {
-                if (countArc[idArc] != 0 && min > (countP[idArc] - countArc[idArc]) && !usedArcs.Contains(idArc))
+                if (countArc[idArc] != 0 && min > (countParametric[idArc] - countArc[idArc]) && !usedArcs.Contains(idArc))
                 {
                     idMinArc = idArc;
-                    min = countP[idArc] - countArc[idArc];
+                    min = countParametric[idArc] - countArc[idArc];
                 }
             }
 
             usedArcs.Add(idMinArc);
-
+            int xSplit, ySplit;
             for (int idContour = 0; idContour < matrixArcAndContour.GetLength(0); idContour++)
             {
-                if (matrixArcAndContour[idContour, idMinArc] != 0)
+                if (matrixArcAndContour[idContour, idMinArc] != 0 && splitContours.Contains(idContour))
                 {
                     Debug.Log($"<color=#AC68FA>Разрываем связь {connections[idMinArc].name}</color>");
-                    openAdjacencyMatrix[connections[idMinArc].idFrom, connections[idMinArc].idTo] = 0;
-                    if (splitContours.Contains(idContour))
-                        _ = splitContours.Remove(idContour);
+                    xSplit = connections[idMinArc].idFrom;
+                    ySplit = connections[idMinArc].idTo;
+                    openAdjacencyMatrix[xSplit, ySplit] = 0;
+                    matrixArcAndContour[idContour, idMinArc] = 0;
+
+                    (countParametric, countArc) = CalculateCountParametricAndArc(matrixArcAndContour);
+                    _ = splitContours.Remove(idContour);
                 }
             }
         }
