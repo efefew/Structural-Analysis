@@ -7,9 +7,8 @@ using UnityEngine;
 public class ElementsManager : MonoBehaviour
 {
     #region Fields
-
+    public bool newMethod;
     private const float DISTANCE_RAY = 1000f;
-    private const float ELEMENT_OFFSET = 25f;
     private Vector3 pos, startPos, ScreenPos;
     private Element elementMove;
     private ElementConnection connectionMove;
@@ -174,7 +173,7 @@ public class ElementsManager : MonoBehaviour
             elementMove = null;
     }
 
-    public void GetOrderCalculation() => Debug.Log(new StructuralAnalysisCTS().StructuralAnalysisChemicalTechnologicalSystems(CreateAdjacencyMatrix()));
+    public void GetOrderCalculation() => Debug.Log(new StructuralAnalysisCTS().StructuralAnalysisChemicalTechnologicalSystems(CreateAdjacencyMatrix(), newMethod));
     public void CreateScheme()
     {
         using StreamReader reader = new("input.txt");
