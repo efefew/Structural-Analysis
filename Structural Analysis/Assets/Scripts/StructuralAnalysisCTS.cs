@@ -32,7 +32,7 @@ public class StructuralAnalysisCTS
             bool AllCellsZero = true;
             for (int x = 0; x < arr.GetLength(0); x++)
             {
-                if (arr[x, y] == 1)
+                if (arr[x, y] != 0)
                 {
                     AllCellsZero = false;
                     break;
@@ -105,7 +105,7 @@ public class StructuralAnalysisCTS
         return newArr;
     }
 
-    private (double[,], string[][]) CutEmptyColumns(int[,] arr, int[,] adjacencyMatrix, ref string[] names)
+    private (int[,], string[][]) CutEmptyColumns(int[,] arr, int[,] adjacencyMatrix, ref string[] names)
     {
         List<List<string>> complexes = new();
         List<string> tempNames = new();
@@ -127,7 +127,7 @@ public class StructuralAnalysisCTS
                 tempNames.RemoveAt(tempNames.IndexOf(names[idRow]));
         }
 
-        double[,] cutAdjacencyMatrix = new double[tempNames.Count, tempNames.Count];
+        int[,] cutAdjacencyMatrix = new int[tempNames.Count, tempNames.Count];
 
         for (int idRow = 0; idRow < arr.GetLength(0); idRow++)
         {
@@ -175,36 +175,10 @@ public class StructuralAnalysisCTS
         }
 
         names = tempNames.ToArray();
-        return (cutAdjacencyMatrix, To2DArray(complexes));
+        return (cutAdjacencyMatrix, complexes.To2DArray());
     }
 
-    private string[][] To2DArray(List<List<string>> list2D)
-    {
-        string[][] arr2D;
-        arr2D = new string[list2D.Count][];
-        for (int i = 0; i < list2D.Count; i++)
-        {
-            arr2D[i] = new string[list2D[i].Count];
-            for (int j = 0; j < list2D[i].Count; j++)
-                arr2D[i][j] = list2D[i][j];
-        }
-
-        return arr2D;
-    }
-    private string[,] To2DArray(List<string[]> list2D)
-    {
-        string[,] arr2D;
-        arr2D = new string[list2D.Count, list2D[0].Length];
-        for (int i = 0; i < list2D.Count; i++)
-        {
-            for (int j = 0; j < list2D[0].Length; j++)
-                arr2D[i, j] = list2D[i][j];
-        }
-
-        return arr2D;
-    }
-
-    private (Connection[], Contour[]) CreateConnectionsAndContours(double[,] cutAdjacencyMatrix, string[] names)
+    private (Connection[], Contour[]) CreateConnectionsAndContours(int[,] cutAdjacencyMatrix, string[] names)
     {
         List<Connection> connections = new();
         List<Contour> contours = new();
@@ -217,16 +191,15 @@ public class StructuralAnalysisCTS
             }
         }
 
-        Debug.Log("Соединения:");
-        for (int i = 0; i < connections.Count; i++)
-            Debug.Log(connections[i].name);
+        //Debug.Log("Соединения:");
+        //for (int id = 0; id < connections.Count; id++)
+        //    Debug.Log(connections[id].name);
 
         List<int> tempContour = new()
             {
                 connections[0].idFrom
             };
         bool forward = true;
-        Debug.Log("-------------------------------------");
         do
         {
             int nextElementID;
@@ -373,7 +346,7 @@ public class StructuralAnalysisCTS
         return 0;
     }
 
-    private void MatrixOfContoursOfTheComplex(Contour[] contours, Connection[] connections, int[,] adjacencyMatrix, bool newMethod)
+    private void MatrixOfContoursOfTheComplex(Contour[] contours, Connection[] connections, int[,] adjacencyMatrix, string[] namesMatrix)
     {
         int[,] matrixArcAndContour = new int[contours.Length, connections.GetLength(0)];
         for (int i = 0; i < matrixArcAndContour.GetLength(0); i++)
@@ -391,8 +364,13 @@ public class StructuralAnalysisCTS
             writer.WriteLine(showMatrix);
         }
 
-        int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countParametric, countArc, connections, newMethod);
-        SAOfOpenedTHS(openAdjacencyMatrix);
+        int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countParametric, countArc, connections);
+        List<int> path = SAOfOpenedTHS(openAdjacencyMatrix);
+        string result = "";
+        result += path[0];
+        for (int id = 1; id < path.Count; id++)
+            result += ", " + namesMatrix[path[id] - 1];
+        Debug.Log(result);
     }
     private (int[], int[]) CalculateCountParametricAndArc(int[,] matrix)
     {
@@ -451,7 +429,7 @@ public class StructuralAnalysisCTS
 
         return showMatrix.CreateTable(contoursName, connectionsName).ShowArray();
     }
-    private int[,] SplitAdjacencyMatrix(int[,] adjacencyMatrix, int[,] matrixArcAndContour, int[] countParametric, int[] countArc, Connection[] connections, bool newMethod)
+    private int[,] SplitAdjacencyMatrix(int[,] adjacencyMatrix, int[,] matrixArcAndContour, int[] countParametric, int[] countArc, Connection[] connections)
     {
         int[,] openAdjacencyMatrix = new int[adjacencyMatrix.GetLength(0), adjacencyMatrix.GetLength(1)];
         for (int x = 0; x < adjacencyMatrix.GetLength(0); x++)
@@ -503,8 +481,7 @@ public class StructuralAnalysisCTS
                     for (int idArc = 0; idArc < matrixArcAndContour.GetLength(1); idArc++)
                         matrixArcAndContour[idContour, idArc] = 0;
 
-                    if (newMethod)
-                        (countParametric, countArc) = CalculateCountParametricAndArc(matrixArcAndContour);
+                    (countParametric, countArc) = CalculateCountParametricAndArc(matrixArcAndContour);
                     _ = splitContours.Remove(idContour);
                 }
             }
@@ -512,7 +489,7 @@ public class StructuralAnalysisCTS
 
         return openAdjacencyMatrix;
     }
-    public bool StructuralAnalysisChemicalTechnologicalSystems(int[,] adjacencyMatrix, bool newMethod)
+    public bool StructuralAnalysisChemicalTechnologicalSystems(int[,] adjacencyMatrix)
     {
         if (adjacencyMatrix == null ||
             adjacencyMatrix.GetLength(0) != adjacencyMatrix.GetLength(1))
@@ -520,70 +497,80 @@ public class StructuralAnalysisCTS
             return false;
         }
 
-        Debug.Log(adjacencyMatrix.ShowArray());
+        bool show = false;
+        if (show)
+        {
+            Debug.Log(adjacencyMatrix.ShowArray());
+            Debug.Log("A * A^T = ");
+        }
+
         int[,] connectionMatrix = ToConnectionMatrix(adjacencyMatrix);
-        Debug.Log("A = ");
-        Debug.Log(connectionMatrix.ShowArray());
-        Debug.Log("A^T = ");
+        //Debug.Log("A = ");
+        //Debug.Log(connectionMatrix.ShowArray());
+        //Debug.Log("A^T = ");
         int[,] arrT = connectionMatrix.Transposition();
-        Debug.Log(arrT.ShowArray());
-        Debug.Log("A * A^T = ");
+        //Debug.Log(arrT.ShowArray());
         int[,] complexArr = connectionMatrix.Complex(arrT);
         if (OnlyMainDiagonal(complexArr))
         {
-            Debug.Log("OnlyMainDiagonal");
-            SAOfOpenedTHS(adjacencyMatrix);
+            _ = SAOfOpenedTHS(adjacencyMatrix);
             return false;
         }
 
-        Debug.Log(complexArr.CreateTable(out string[] names).ShowArray());
-        double[,] cutAdjacencyMatrix;
-        string[][] complexes;
-        (cutAdjacencyMatrix, complexes) = CutEmptyColumns(complexArr, adjacencyMatrix, ref names);
-        for (int i = 0; i < complexes.Length; i++)
+        string[,] table = complexArr.CreateTable(out string[] names);
+        if (show)
+            Debug.Log(table.ShowArray());
+
+        int[,] cutAdjacencyMatrix;
+        (cutAdjacencyMatrix, _) = CutEmptyColumns(complexArr, adjacencyMatrix, ref names);
+        if (show)
         {
-            Debug.Log("�������� " + (i + 1) + ":");
-            for (int j = 0; j < complexes[i].Length; j++)
-                Debug.Log(complexes[i][j]);
+            Debug.Log("�������� ������� ���������:");
+            Debug.Log(cutAdjacencyMatrix.CreateTable(names).ShowArray());
         }
-        //Debug.Log(nameElements.ShowArray());
-        Debug.Log("�������� ������� ���������:");
-        Debug.Log(cutAdjacencyMatrix.CreateTable(names).ShowArray());
+
         Contour[] contours;
         Connection[] connections;
         (connections, contours) = CreateConnectionsAndContours(cutAdjacencyMatrix, names);
-        MatrixOfContoursOfTheComplex(contours, connections, adjacencyMatrix, newMethod);
+        MatrixOfContoursOfTheComplex(contours, connections, cutAdjacencyMatrix, names);
         return true;
     }
-    private void SAOfOpenedTHS(int[,] adjacencyMatrix)
+    private List<int> SAOfOpenedTHS(int[,] adjacencyMatrix)
     {
+        bool show = false;
         if (adjacencyMatrix == null)
-            return;
-        string path = "";
+            return null;
         int size = adjacencyMatrix.GetLength(0);
+        List<int> path = new();
         int id;
         int[] idArr = new int[size];
         for (int i = 0; i < size; i++)
             idArr[i] = i + 1;
-        Debug.Log("<color=#DDEE22>" + idArr.ShowArray() + "</color>");
-        Debug.Log(adjacencyMatrix.ShowArray());
+        if (show)
+        {
+            Debug.Log("<color=#DDEE22>" + idArr.ShowArray() + "</color>");
+            Debug.Log(adjacencyMatrix.ShowArray());
+        }
 
         for (int i = 0; i < size; i++)
         {
 
             (id, idArr, adjacencyMatrix) = FindEmptyColumnAndDelete(adjacencyMatrix, idArr);
-            Debug.Log("<color=#DDEE22>" + idArr.ShowArray() + "</color>");
-            Debug.Log(adjacencyMatrix.ShowArray());
+            if (show)
+            {
+                Debug.Log("<color=#DDEE22>" + idArr.ShowArray() + "</color>");
+                Debug.Log(adjacencyMatrix.ShowArray());
+            }
 
             if (id == -1)
                 continue;
             if (idArr.Length != 0)
-                path += " " + id;
+                path.Add(id);
             if (idArr.Length == 1)
-                path += " " + idArr[0];
+                path.Add(idArr[0]);
         }
 
-        Debug.Log(path);
+        return path;
     }
     private bool OnlyMainDiagonal(int[,] arr)
     {

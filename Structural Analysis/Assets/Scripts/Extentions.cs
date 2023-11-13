@@ -289,6 +289,32 @@ public static class ArrayExtensions
             (array[n], array[k]) = (array[k], array[n]);
         }
     }
+
+    public static string[][] To2DArray(this List<List<string>> list2D)
+    {
+        string[][] arr2D;
+        arr2D = new string[list2D.Count][];
+        for (int i = 0; i < list2D.Count; i++)
+        {
+            arr2D[i] = new string[list2D[i].Count];
+            for (int j = 0; j < list2D[i].Count; j++)
+                arr2D[i][j] = list2D[i][j];
+        }
+
+        return arr2D;
+    }
+    public static string[,] To2DArray(this List<string[]> list2D)
+    {
+        string[,] arr2D;
+        arr2D = new string[list2D.Count, list2D[0].Length];
+        for (int i = 0; i < list2D.Count; i++)
+        {
+            for (int j = 0; j < list2D[0].Length; j++)
+                arr2D[i, j] = list2D[i][j];
+        }
+
+        return arr2D;
+    }
     public static T[] ToArray<T>(this T[,] matrix)
     {
         T[] array = new T[matrix.GetLength(0) * matrix.GetLength(1)];
