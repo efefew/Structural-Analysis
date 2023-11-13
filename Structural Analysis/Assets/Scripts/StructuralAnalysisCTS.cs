@@ -365,7 +365,7 @@ public class StructuralAnalysisCTS
         }
 
         int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countParametric, countArc, connections);
-        List<int> path = SAOfOpenedTHS(openAdjacencyMatrix);
+        List<int> path = SAOfOpenedTHS(openAdjacencyMatrix, namesMatrix);
         string result = "";
         result += path[0];
         for (int id = 1; id < path.Count; id++)
@@ -535,6 +535,43 @@ public class StructuralAnalysisCTS
         MatrixOfContoursOfTheComplex(contours, connections, cutAdjacencyMatrix, names);
         return true;
     }
+    private List<int> SAOfOpenedTHS(int[,] adjacencyMatrix, string[] names)
+    {
+        bool show = false;
+        if (adjacencyMatrix == null)
+            return null;
+        int size = adjacencyMatrix.GetLength(0);
+        List<int> path = new();
+        int id;
+        int[] idArr = new int[size];
+        for (int i = 0; i < size; i++)
+            idArr[i] = i + 1;
+        if (show)
+        {
+            Debug.Log("<color=#DDEE22>" + idArr.ShowArray() + "</color>");
+            Debug.Log(adjacencyMatrix.ShowArray());
+        }
+
+        for (int i = 0; i < size; i++)
+        {
+
+            (id, idArr, adjacencyMatrix) = FindEmptyColumnAndDelete(adjacencyMatrix, idArr);
+            if (show)
+            {
+                Debug.Log("<color=#DDEE22>" + idArr.ShowArray() + "</color>");
+                Debug.Log(adjacencyMatrix.ShowArray());
+            }
+
+            if (id == -1)
+                continue;
+            if (idArr.Length != 0)
+                path.Add(id);
+            if (idArr.Length == 1)
+                path.Add(idArr[0]);
+        }
+
+        return path;
+    }
     private List<int> SAOfOpenedTHS(int[,] adjacencyMatrix)
     {
         bool show = false;
@@ -570,6 +607,7 @@ public class StructuralAnalysisCTS
                 path.Add(idArr[0]);
         }
 
+        Debug.Log(path.ShowList());
         return path;
     }
     private bool OnlyMainDiagonal(int[,] arr)
