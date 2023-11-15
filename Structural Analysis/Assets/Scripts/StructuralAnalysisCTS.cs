@@ -444,7 +444,7 @@ public class StructuralAnalysisCTS
         List<int> usedArcs = new();
         for (int id = 0; id < matrixArcAndContour.GetLength(0); id++)
             splitContours.Add(id);
-        int maxCountArc, idTargetArc, minParametric;
+        int maxCountArc, idTargetArc, minParametric = int.MaxValue;
 
         while (splitContours.Count > 0)
         {
@@ -457,14 +457,16 @@ public class StructuralAnalysisCTS
                     idTargetArc = idArc;
                     maxCountArc = countArc[idArc];/*countParametric[idArc] - */
                     minParametric = countParametric[idArc];
-                    for (int idEqualArc = 0; idEqualArc < countArc.Length; idEqualArc++)
-                    {
-                        if (countArc[idEqualArc] == maxCountArc && minParametric > countParametric[idEqualArc])
-                        {
-                            minParametric = countParametric[idEqualArc];
-                            idTargetArc = idEqualArc;
-                        }
-                    }
+
+                }
+            }
+
+            for (int idEqualArc = 0; idEqualArc < countArc.Length; idEqualArc++)
+            {
+                if (countArc[idEqualArc] == maxCountArc && minParametric > countParametric[idEqualArc])
+                {
+                    minParametric = countParametric[idEqualArc];
+                    idTargetArc = idEqualArc;
                 }
             }
 
