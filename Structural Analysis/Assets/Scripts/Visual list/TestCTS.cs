@@ -1,4 +1,5 @@
 using System.IO;
+using System.Reflection;
 
 using UnityEngine;
 
@@ -8,25 +9,49 @@ public class TestCTS : MonoBehaviour
 
     private void Start()
     {
-        for (int idTest = 1; idTest <= COUNT_TEST; idTest++)
-            ReadMatrix($"{idTest}");
+        Debug.Log(Assembly.GetExecutingAssembly().Location.Replace("\\Library\\ScriptAssemblies\\Assembly-CSharp.dll", ""));
+        DirectoryInfo directory = new(Assembly.GetExecutingAssembly().Location.Replace("\\Library\\ScriptAssemblies\\Assembly-CSharp.dll", ""));
+        if (directory.GetFiles().Length > 0)
+        {
+            foreach (FileInfo file in directory.GetFiles())
+            {
+                if (file.Name.EndsWith(".txt"))
+                {
+                    try
+                    {
+                        ReadMatrix(file.Name.Replace(".txt", ""));
+                    }
+                    catch
+                    {
+
+                    }
+                }
+            }
+        }
     }
     private void ReadMatrix(string path)
     {
+        string text;
         using StreamReader reader = new($"{path}.txt");
-        int count = reader.ReadLine().ToInt();
-        int y = 0;
-        int[,] matrix = new int[count, count];
-        while (!reader.EndOfStream)
         {
-            string[] line = reader.ReadLine().Split('\t');
-            for (int x = 0; x < count; x++)
-                matrix[x, y] = line[x].ToInt();
-            y++;
+            int count = reader.ReadLine().ToInt();
+            int y = 0;
+            int[,] matrix = new int[count, count];
+            while (!reader.EndOfStream)
+            {
+                string[] line = reader.ReadLine().Split('\t');
+                for (int x = 0; x < count; x++)
+                    matrix[x, y] = line[x].ToInt();
+                y++;
+            }
+
+            text = GetOrderCalculation(matrix.Transposition());
         }
 
-        GetOrderCalculation(matrix.Transposition());
+        _ = new FileStream($"{path}.xls", FileMode.Create);
+        using StreamWriter writer = new($"{path}.xls");
+        writer.Write(text);
     }
-    private void GetOrderCalculation(int[,] matrix) => Debug.Log(new StructuralAnalysisCTS().StructuralAnalysisChemicalTechnologicalSystems(matrix));
+    private string GetOrderCalculation(int[,] matrix) => new StructuralAnalysisCTS().StructuralAnalysisChemicalTechnologicalSystems(matrix);
 
 }

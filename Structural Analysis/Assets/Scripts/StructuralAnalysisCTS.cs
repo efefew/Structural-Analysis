@@ -93,13 +93,13 @@ public class StructuralAnalysisCTS
             for (int y = 0; y < length; y++)
             {
                 if (arr[x, y] > 0)
-                    newArr[x, y] = arr[x, y];//�� ���� ���
+                    newArr[x, y] = arr[x, y];
                 if (x == y)
                     newArr[x, y] = 1;
             }
 
             for (int y = 0; y < length; y++)
-                SearchLine(ref newArr, arr, x, y);//�� ��������� �����
+                SearchLine(ref newArr, arr, x, y);
         }
 
         return newArr;
@@ -491,12 +491,12 @@ public class StructuralAnalysisCTS
 
         return openAdjacencyMatrix;
     }
-    public bool StructuralAnalysisChemicalTechnologicalSystems(int[,] adjacencyMatrix)
+    public string StructuralAnalysisChemicalTechnologicalSystems(int[,] adjacencyMatrix)
     {
         if (adjacencyMatrix == null ||
             adjacencyMatrix.GetLength(0) != adjacencyMatrix.GetLength(1))
         {
-            return false;
+            return "";
         }
 
         bool show = false;
@@ -516,7 +516,7 @@ public class StructuralAnalysisCTS
         if (OnlyMainDiagonal(complexArr))
         {
             _ = SAOfOpenedTHS(adjacencyMatrix);
-            return false;
+            return "false";
         }
 
         string[,] table = complexArr.CreateTable(out string[] names);
@@ -535,7 +535,7 @@ public class StructuralAnalysisCTS
         Connection[] connections;
         (connections, contours) = CreateConnectionsAndContours(cutAdjacencyMatrix, names);
         MatrixOfContoursOfTheComplex(contours, connections, cutAdjacencyMatrix, names);
-        return true;
+        return "true";
     }
     private List<int> SAOfOpenedTHS(int[,] adjacencyMatrix, string[] names)
     {

@@ -809,7 +809,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044C\n"
+  m_Text: "\u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044C \u0432\u0441\u0451\n"
 --- !u!222 &1828071432
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -899,7 +899,7 @@ GameObject:
   - component: {fileID: 1978238128}
   - component: {fileID: 1978238127}
   m_Layer: 5
-  m_Name: "\u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044C"
+  m_Name: "\u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044C \u0432\u0441\u0451 "
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
