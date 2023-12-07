@@ -9,7 +9,6 @@ public class TestCTS : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log(Assembly.GetExecutingAssembly().Location.Replace("\\Library\\ScriptAssemblies\\Assembly-CSharp.dll", ""));
         DirectoryInfo directory = new(Assembly.GetExecutingAssembly().Location.Replace("\\Library\\ScriptAssemblies\\Assembly-CSharp.dll", ""));
         if (directory.GetFiles().Length > 0)
         {
@@ -34,12 +33,18 @@ public class TestCTS : MonoBehaviour
         string text;
         using StreamReader reader = new($"{path}.txt");
         {
-            int count = reader.ReadLine().ToInt();
+            int count = -1;
             int y = 0;
-            int[,] matrix = new int[count, count];
+            int[,] matrix = null;
             while (!reader.EndOfStream)
             {
                 string[] line = reader.ReadLine().Split('\t');
+                if (count == -1)
+                {
+                    count = line.Length;
+                    matrix = new int[count, count];
+                }
+
                 for (int x = 0; x < count; x++)
                     matrix[x, y] = line[x].ToInt();
                 y++;
@@ -48,7 +53,8 @@ public class TestCTS : MonoBehaviour
             text = GetOrderCalculation(matrix.Transposition());
         }
 
-        _ = new FileStream($"{path}.xls", FileMode.Create);
+        FileStream f = new FileStream($"{path}.xls", FileMode.Create);
+        f.Close();
         using StreamWriter writer = new($"{path}.xls");
         writer.Write(text);
     }
