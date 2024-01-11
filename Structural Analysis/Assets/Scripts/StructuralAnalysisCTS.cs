@@ -367,21 +367,16 @@ public class StructuralAnalysisCTS
         (int[] countParametric, int[] countArc) = CalculateCountParametricAndArc(matrixArcAndContour);
 
         string showMatrix = ShowMatrixOfContoursOfTheComplex(contours, connections, matrixArcAndContour, countParametric, countArc);
-        //Debug.Log(showMatrix);
 
         text += '\n' + showMatrix;
-
-        //using (StreamWriter writer = new("excel.xls"))
-        //{
-        //    writer.WriteLine(showMatrix);
-        //}
 
         int[,] openAdjacencyMatrix = SplitAdjacencyMatrix(adjacencyMatrix, matrixArcAndContour, countParametric, countArc, connections);
         List<int> path = SAOfOpenedTHS(openAdjacencyMatrix, namesMatrix);
         string result = "";
-        result += path[0];
+        result += namesMatrix[path[0] - 1];
         for (int id = 1; id < path.Count; id++)
             result += ", " + namesMatrix[path[id] - 1];
+
         text += '\n' + "result: ";
         text += '\n' + result;
     }

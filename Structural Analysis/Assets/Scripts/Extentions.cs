@@ -746,6 +746,26 @@ public static class UnityExtensions
         // Если количество результатов больше нуля, значит указатель мыши находится над объектом UI.
         return results.Count > 0;
     }
+    /// <summary>
+    /// Проверяет, находится ли указатель мыши над объектом UI.
+    /// </summary>
+    /// <returns>объекты UI</returns>
+    public static List<RaycastResult> GetUIOnPoint()
+    {
+        // Создаем экземпляр PointerEventData с текущим положением указателя мыши.
+        PointerEventData eventDataCurrentPosition = new(EventSystem.current)
+        {
+            position = new Vector2(Input.mousePosition.x, Input.mousePosition.y)
+        };
+
+        List<RaycastResult> results = new();
+        // Выполняем лучевой кастинг для всех объектов в текущей позиции указателя мыши.
+        // Результаты сохраняются в списке results.
+        EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+
+        // Если количество результатов больше нуля, значит указатель мыши находится над объектом UI.
+        return results;
+    }
 }
 public static class ConsoleExtensions
 {

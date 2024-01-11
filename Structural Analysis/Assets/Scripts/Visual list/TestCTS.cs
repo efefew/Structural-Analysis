@@ -16,14 +16,7 @@ public class TestCTS : MonoBehaviour
             {
                 if (file.Name.EndsWith(".txt"))
                 {
-                    try
-                    {
-                        ReadMatrix(file.Name.Replace(".txt", ""));
-                    }
-                    catch
-                    {
-
-                    }
+                    ReadMatrix(file.Name.Replace(".txt", ""));
                 }
             }
         }
