@@ -9,19 +9,21 @@ public class TabSystem : MonoBehaviour
     [SerializeField] private Button addButton;
     [SerializeField] private TabButton tabButtonPrefab;
     [SerializeField] private Tab defaultTab;
-    private Transform content;
+    private Transform tabButtonsConteiner;
+    [SerializeField] private Transform tabsConteiner;
     void Start()
     {
-        content = transform;
+        tabButtonsConteiner = transform;
         addButton.onClick.AddListener(() => AddTab(defaultTab));
     }
     private void OnDestroy()
     {
         addButton.onClick.RemoveAllListeners();
     }
-    public void AddTab(Tab tab)
+    public void AddTab(Tab tabPrefab)
     {
-        TabButton tabButton = Instantiate(tabButtonPrefab, content);
+        TabButton tabButton = Instantiate(tabButtonPrefab, tabButtonsConteiner);
+        Tab tab = Instantiate(tabPrefab, tabsConteiner);
         tabButton.tab = tab;
         tabButton.tabSystem = this;
         if (!tabButtons.Contains(tabButton))

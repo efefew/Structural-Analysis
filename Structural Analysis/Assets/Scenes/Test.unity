@@ -407,10 +407,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e9cc2a7d9d595047adb4c54c09d47d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  addButton: {fileID: 0}
+  addButton: {fileID: 1497363011}
   tabButtonPrefab: {fileID: 8497760442377471364, guid: 8218e6dc22ad54f48b51a4d9701f30f0,
     type: 3}
-  defaultTab: {fileID: 0}
+  defaultTab: {fileID: 4881386960512020544, guid: ad698d310437e204396bc76aa6bd0327,
+    type: 3}
+  tabsConteiner: {fileID: 1991240974}
 --- !u!114 &251833538
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -423,7 +425,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2fafe2cfe61f6974895a912c3755e8f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AllowSwitchOff: 1
+  m_AllowSwitchOff: 0
 --- !u!114 &251833539
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -449,7 +451,7 @@ MonoBehaviour:
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
-  m_ReverseArrangement: 1
+  m_ReverseArrangement: 0
 --- !u!114 &251833540
 MonoBehaviour:
   m_ObjectHideFlags: 0
