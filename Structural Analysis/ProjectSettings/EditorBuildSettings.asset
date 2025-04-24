@@ -4,5 +4,9 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Structural Analysys.unity
+    guid: 95a3621dc901b1549abd646f8b5b2331
   m_configObjects: {}
+  m_UseUCBPForAssetBundles: 0

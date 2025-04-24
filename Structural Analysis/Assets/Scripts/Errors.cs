@@ -5,7 +5,8 @@ public class Errors : MonoBehaviour
 {
     private string output;
     private string stack;
-    public GameObject label, LogMenu;
+    public GameObject LogMenu;
+    public Text label;
     public Transform content;
 
     private void OnEnable() => Application.logMessageReceived += HandleLog;
@@ -22,16 +23,27 @@ public class Errors : MonoBehaviour
     {
         output = logString;
         stack = stackTrace;
-        Text text = Instantiate(label, content).GetComponent<Text>();
+        Text text = Instantiate(label, content);
         text.text = output;
         switch (type)
         {
-            case LogType.Error: text.color = Color.red; break;
-            case LogType.Warning: text.color = Color.yellow; break;
-            case LogType.Assert: text.color = Color.gray; break;
-            case LogType.Exception: text.color = Color.red; break;
-            case LogType.Log: text.color = Color.white; break;
-            default: break;
+            case LogType.Error:
+                text.color = Color.red;
+                break;
+            case LogType.Warning:
+                text.color = Color.yellow;
+                break;
+            case LogType.Assert:
+                text.color = Color.gray;
+                break;
+            case LogType.Exception:
+                text.color = Color.red;
+                break;
+            case LogType.Log:
+                text.color = Color.white;
+                break;
+            default:
+                break;
         }
     }
 }
